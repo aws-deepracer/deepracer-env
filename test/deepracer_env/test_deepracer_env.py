@@ -18,16 +18,16 @@ from unittest import mock, TestCase
 from unittest.mock import patch, MagicMock, call
 import inspect
 
-from deepracer import DeepRacer
+from deepracer_env import DeepRacerEnv
 from ude import Compression
 
 
 myself: Callable[[], Any] = lambda: inspect.stack()[1][3]
 
 
-@patch("deepracer.deepracer.Client")
-@patch("deepracer.deepracer.UDEEnvironment")
-@patch("deepracer.deepracer.RemoteEnvironmentAdapter")
+@patch("deepracer_env.deepracer_env.Client")
+@patch("deepracer_env.deepracer_env.UDEEnvironment")
+@patch("deepracer_env.deepracer_env.RemoteEnvironmentAdapter")
 class DeepRacerTest(TestCase):
     def setUp(self) -> None:
         pass
@@ -37,7 +37,7 @@ class DeepRacerTest(TestCase):
                         ude_env_mock,
                         deepracer_config_mock):
         address = "test_ip"
-        DeepRacer(address=address)
+        DeepRacerEnv(address=address)
         remote_env_adapter_mock.assert_called_once_with(address=address,
                                                         port=80,
                                                         options=None,
@@ -62,13 +62,13 @@ class DeepRacerTest(TestCase):
         timeout = 15.0
         max_retry_attempts = 3
 
-        _ = DeepRacer(address=address,
-                      port=port,
-                      options=options,
-                      compression=compression,
-                      credentials=credentials,
-                      timeout=timeout,
-                      max_retry_attempts=max_retry_attempts)
+        _ = DeepRacerEnv(address=address,
+                         port=port,
+                         options=options,
+                         compression=compression,
+                         credentials=credentials,
+                         timeout=timeout,
+                         max_retry_attempts=max_retry_attempts)
 
         remote_env_adapter_mock.assert_called_once_with(address=address,
                                                         port=port,
@@ -87,7 +87,7 @@ class DeepRacerTest(TestCase):
                   ude_env_mock,
                   deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
 
         action_dict = {"agent1": "action1"}
 
@@ -100,7 +100,7 @@ class DeepRacerTest(TestCase):
                    ude_env_mock,
                    deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         obs_dict = env.reset()
         ude_env_mock.return_value.reset.assert_called_once()
         assert obs_dict == ude_env_mock.return_value.reset.return_value
@@ -110,7 +110,7 @@ class DeepRacerTest(TestCase):
                    ude_env_mock,
                    deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         env.close()
         ude_env_mock.return_value.close.assert_called_once()
 
@@ -119,7 +119,7 @@ class DeepRacerTest(TestCase):
                                ude_env_mock,
                                deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         assert ude_env_mock.return_value.observation_space == env.observation_space
 
     def test_action_space(self,
@@ -127,7 +127,7 @@ class DeepRacerTest(TestCase):
                           ude_env_mock,
                           deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         assert ude_env_mock.return_value.action_space == env.action_space
 
     def test_side_channel(self,
@@ -135,7 +135,7 @@ class DeepRacerTest(TestCase):
                           ude_env_mock,
                           deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         assert ude_env_mock.return_value.side_channel == env.side_channel
 
     def test_get_track(self,
@@ -143,7 +143,7 @@ class DeepRacerTest(TestCase):
                        ude_env_mock,
                        deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         track = env.get_track()
         deepracer_config_mock.return_value.get_track.assert_called_once()
         assert track == deepracer_config_mock.return_value.get_track.return_value
@@ -153,7 +153,7 @@ class DeepRacerTest(TestCase):
                          ude_env_mock,
                          deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         track_mock = MagicMock()
         env.apply_track(track=track_mock)
         deepracer_config_mock.return_value.apply_track.assert_called_once_with(track=track_mock)
@@ -163,7 +163,7 @@ class DeepRacerTest(TestCase):
                        ude_env_mock,
                        deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         agent = env.get_agent()
         deepracer_config_mock.return_value.get_agents.assert_called_once()
         assert agent == deepracer_config_mock.return_value.get_agents.return_value[0]
@@ -173,7 +173,7 @@ class DeepRacerTest(TestCase):
                          ude_env_mock,
                          deepracer_config_mock):
         address = "test_ip"
-        env = DeepRacer(address=address)
+        env = DeepRacerEnv(address=address)
         agent_mock = MagicMock()
         env.apply_agent(agent=agent_mock)
         deepracer_config_mock.return_value.apply_agent.assert_called_once_with(agent=agent_mock)

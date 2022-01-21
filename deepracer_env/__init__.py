@@ -13,5 +13,5 @@
 #   See the License for the specific language governing permissions and         #
 #   limitations under the License.                                              #
 #################################################################################
-"""DeepRacer modules"""
-from .deepracer import DeepRacer
+"""DeepRacerEnv modules"""
+from .deepracer_env import DeepRacerEnv

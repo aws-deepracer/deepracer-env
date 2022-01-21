@@ -13,19 +13,53 @@
 #   See the License for the specific language governing permissions and         #
 #   limitations under the License.                                              #
 #################################################################################
+import os
 from setuptools import find_packages
 from distutils.core import setup
 
-package_name = 'deepracer'
 
-setup(name=package_name,
-      version='0.0.0',
-      packages=find_packages(where='.', exclude='test'),
-      package_dir={'': '.'},
-      install_requires=[
-        'setuptools',
-        'pytest-flake8==1.0.7',
-        'pytest-pep257==0.0.5',
-        'pytest-timeout==1.4.2'
-    ]
-)
+def read(fname):
+    """
+    Args:
+        fname (str): dir path to read
+    """
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
+def read_version():
+    return read("VERSION").strip()
+
+
+package_name = 'deepracer-env'
+
+# Declare minimal set for installation
+required_packages = [
+    "setuptools",
+    "pytest-flake8==1.0.7",
+    "pytest-pep257==0.0.5",
+    "pytest-timeout==1.4.2",
+]
+
+setup_args = {
+    "name": package_name,
+    "version": read_version(),
+    "packages": find_packages(where=".", exclude="test"),
+    "package_dir": {"": "."},
+    "description": "Open source library to communicate with remote DeepRacer environment.",
+    "long_description": read("README.md"),
+    "author": "Amazon Web Services",
+    "url": "https://github.com/aws-deepracer/deepracer-env/",
+    "license": "Apache License 2.0",
+    "keywords": "ML RL Amazon AWS AI DeepRacer",
+    "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Natural Language :: English",
+        "License :: OSI Approved :: Apache Software License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.8",
+    ],
+    "install_requires": required_packages,
+}
+
+setup(**setup_args)

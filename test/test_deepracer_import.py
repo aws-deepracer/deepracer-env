@@ -16,5 +16,5 @@
 import pytest
 
 
-def test_deepracer_importable():
-    import deepracer  # noqa: F401
+def test_deepracer_env_importable():
+    import deepracer_env  # noqa: F401

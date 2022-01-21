@@ -13,7 +13,7 @@
 #   See the License for the specific language governing permissions and         #
 #   limitations under the License.                                              #
 #################################################################################
-"""A class for DeepRacer environment."""
+"""A class for DeepRacerEnv environment."""
 from typing import Dict, Optional, List, Tuple, Any
 
 from gym import Space
@@ -31,9 +31,9 @@ from deepracer_env_config import (
 )
 
 
-class DeepRacer(UDEEnvironmentInterface):
+class DeepRacerEnv(UDEEnvironmentInterface):
     """
-    DeepRacer Class.
+    DeepRacerEnv Class.
     """
     def __init__(self,
                  address: str,
