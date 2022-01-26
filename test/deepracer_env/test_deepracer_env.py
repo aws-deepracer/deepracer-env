@@ -18,6 +18,8 @@ from unittest import mock, TestCase
 from unittest.mock import patch, MagicMock, call
 import inspect
 
+import math
+
 from deepracer_env import DeepRacerEnv
 from ude import Compression
 
@@ -89,11 +91,73 @@ class DeepRacerTest(TestCase):
         address = "test_ip"
         env = DeepRacerEnv(address=address)
 
-        action_dict = {"agent1": "action1"}
+        action_dict = {"agent1": (1.0, 2.0)}
 
         step_result = env.step(action_dict=action_dict)
         ude_env_mock.return_value.step.assert_called_once_with(action_dict=action_dict)
         assert step_result == ude_env_mock.return_value.step.return_value
+
+    def test_step_single_value(self,
+                               remote_env_adapter_mock,
+                               ude_env_mock,
+                               deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+
+        action_dict = {"agent1": 1.0}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+        action_dict = {"agent1": [1.0]}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+    def test_step_ignore_more_than_two_value(self,
+                                             remote_env_adapter_mock,
+                                             ude_env_mock,
+                                             deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+
+        action_dict = {"agent1": (1.0, 2.0, 3.0)}
+        expected_action_dict = {"agent1": (1.0, 2.0)}
+
+        step_result = env.step(action_dict=action_dict)
+        ude_env_mock.return_value.step.assert_called_once_with(action_dict=expected_action_dict)
+        assert step_result == ude_env_mock.return_value.step.return_value
+
+
+    def test_step_nan_or_inf(self,
+                             remote_env_adapter_mock,
+                             ude_env_mock,
+                             deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+
+        action_dict = {"agent1": (math.nan, 2.0)}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+        action_dict = {"agent1": (1.0, math.nan)}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+        action_dict = {"agent1": (math.inf, 2.0)}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+        action_dict = {"agent1": (1.0, math.inf)}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+        action_dict = {"agent1": (-math.inf, 2.0)}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
+        action_dict = {"agent1": (1.0, -math.inf)}
+        with self.assertRaises(ValueError):
+            _ = env.step(action_dict=action_dict)
+
 
     def test_reset(self,
                    remote_env_adapter_mock,

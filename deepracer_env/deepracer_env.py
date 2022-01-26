@@ -15,6 +15,7 @@
 #################################################################################
 """A class for DeepRacerEnv environment."""
 from typing import Dict, Optional, List, Tuple, Any
+import math
 
 from gym import Space
 
@@ -82,6 +83,18 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         Returns:
             UDEStepResult: observations, rewards, dones, last_actions, info
         """
+        try:
+            action_dict = {agent_id: (float(action[0]), float(action[1]))
+                           for agent_id, action in action_dict.items()}
+        except (TypeError, IndexError):
+            raise ValueError("Agent's action value must contain two float values.")
+
+        for agent_id, action in action_dict.items():
+            steering_angle, speed = float(action[0]), float(action[1])
+            if math.isnan(steering_angle) or math.isinf(steering_angle) or \
+               math.isnan(speed) or math.isinf(speed):
+                raise ValueError("Agent's action value cannot contain nan or inf: {{}: {}}".format(agent_id,
+                                                                                                    action))
         return self._env.step(action_dict=action_dict)
 
     def reset(self) -> MultiAgentDict:
