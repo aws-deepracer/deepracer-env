@@ -23,7 +23,8 @@ def read(fname):
     Args:
         fname (str): dir path to read
     """
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        return f.read()
 
 
 def read_version():
@@ -35,6 +36,7 @@ package_name = 'deepracer-env'
 # Declare minimal set for installation
 required_packages = [
     "setuptools",
+    "flake8>=3.5,<4.0.0",
     "pytest-flake8==1.0.7",
     "pytest-pep257==0.0.5",
     "pytest-timeout==1.4.2",
@@ -48,7 +50,7 @@ setup_args = {
     "description": "Open source library to communicate with remote DeepRacer environment.",
     "long_description": read("README.md"),
     "author": "Amazon Web Services",
-    "url": "https://github.com/aws-deepracer/deepracer-env/",
+    "url": "https://github.com/aws-deepracer/deepracer-env",
     "license": "Apache License 2.0",
     "keywords": "ML RL Amazon AWS AI DeepRacer",
     "classifiers": [
