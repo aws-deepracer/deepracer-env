@@ -39,7 +39,7 @@ class DeepRacerTest(TestCase):
                         ude_env_mock,
                         deepracer_config_mock):
         address = "test_ip"
-        DeepRacerEnv(address=address)
+        env = DeepRacerEnv(address=address)
         remote_env_adapter_mock.assert_called_once_with(address=address,
                                                         port=80,
                                                         options=None,
@@ -51,6 +51,9 @@ class DeepRacerTest(TestCase):
         deepracer_config_mock.assert_called_once_with(ude_env_mock.return_value.side_channel,
                                                       timeout=10.0,
                                                       max_retry_attempts=5)
+        deepracer_config_mock.return_value.get_area.assert_called_once()
+        assert env.track_names == deepracer_config_mock.return_value.get_area.return_value.track_names
+        assert env.shell_names == deepracer_config_mock.return_value.get_area.return_value.shell_names
 
     def test_initialize_with_param(self,
                                    remote_env_adapter_mock,
@@ -64,13 +67,13 @@ class DeepRacerTest(TestCase):
         timeout = 15.0
         max_retry_attempts = 3
 
-        _ = DeepRacerEnv(address=address,
-                         port=port,
-                         options=options,
-                         compression=compression,
-                         credentials=credentials,
-                         timeout=timeout,
-                         max_retry_attempts=max_retry_attempts)
+        env = DeepRacerEnv(address=address,
+                           port=port,
+                           options=options,
+                           compression=compression,
+                           credentials=credentials,
+                           timeout=timeout,
+                           max_retry_attempts=max_retry_attempts)
 
         remote_env_adapter_mock.assert_called_once_with(address=address,
                                                         port=port,
@@ -83,6 +86,9 @@ class DeepRacerTest(TestCase):
         deepracer_config_mock.assert_called_once_with(ude_env_mock.return_value.side_channel,
                                                       timeout=timeout,
                                                       max_retry_attempts=max_retry_attempts)
+        deepracer_config_mock.return_value.get_area.assert_called_once()
+        assert env.track_names == deepracer_config_mock.return_value.get_area.return_value.track_names
+        assert env.shell_names == deepracer_config_mock.return_value.get_area.return_value.shell_names
 
     def test_step(self,
                   remote_env_adapter_mock,
@@ -216,9 +222,41 @@ class DeepRacerTest(TestCase):
                          remote_env_adapter_mock,
                          ude_env_mock,
                          deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.track_names = frozenset({"reinvent",
+                                                  "red_star_open"})
         address = "test_ip"
         env = DeepRacerEnv(address=address)
         track_mock = MagicMock()
+        track_mock.name = "reinvent"
+        env.apply_track(track=track_mock)
+        deepracer_config_mock.return_value.apply_track.assert_called_once_with(track=track_mock)
+
+    def test_apply_track_invalid_name(self,
+                                      remote_env_adapter_mock,
+                                      ude_env_mock,
+                                      deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.track_names = frozenset({"reinvent",
+                                                  "red_star_open"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        track_mock = MagicMock()
+        track_mock.name = "invalid_track"
+        with self.assertRaises(ValueError):
+            env.apply_track(track=track_mock)
+
+    def test_apply_track_ignore_case_and_trim(self,
+                                              remote_env_adapter_mock,
+                                              ude_env_mock,
+                                              deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.track_names = frozenset({"reinvent",
+                                                  "red_star_open"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        track_mock = MagicMock()
+        track_mock.name = "   Red_Star_Open "
         env.apply_track(track=track_mock)
         deepracer_config_mock.return_value.apply_track.assert_called_once_with(track=track_mock)
 
@@ -236,8 +274,114 @@ class DeepRacerTest(TestCase):
                          remote_env_adapter_mock,
                          ude_env_mock,
                          deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = frozenset({"deepracer_black",
+                                                  "deepracer_white",
+                                                  "banana_blue"})
         address = "test_ip"
         env = DeepRacerEnv(address=address)
         agent_mock = MagicMock()
+        agent_mock.shell = "deepracer_black"
         env.apply_agent(agent=agent_mock)
         deepracer_config_mock.return_value.apply_agent.assert_called_once_with(agent=agent_mock)
+
+    def test_apply_agent_custom_shell(self,
+                                      remote_env_adapter_mock,
+                                      ude_env_mock,
+                                      deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = frozenset({"deepracer_black",
+                                                  "deepracer_white",
+                                                  "banana_blue"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        agent_mock = MagicMock()
+        agent_mock.shell = "banana_blue"
+        env.apply_agent(agent=agent_mock)
+        deepracer_config_mock.return_value.apply_agent.assert_called_once_with(agent=agent_mock)
+
+    def test_apply_agent_invalid_deepracer_shell(self,
+                                                 remote_env_adapter_mock,
+                                                 ude_env_mock,
+                                                 deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = frozenset({"deepracer_black",
+                                                  "deepracer_white",
+                                                  "banana_blue"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        agent_mock = MagicMock()
+        agent_mock.shell = "deepracer"
+        with self.assertRaises(ValueError):
+            env.apply_agent(agent=agent_mock)
+
+    def test_apply_agent_invalid_color(self,
+                                       remote_env_adapter_mock,
+                                       ude_env_mock,
+                                       deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = frozenset({"deepracer_black",
+                                                  "deepracer_white",
+                                                  "banana_blue"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        agent_mock = MagicMock()
+        agent_mock.shell = "deepracer_green"
+        with self.assertRaises(ValueError):
+            env.apply_agent(agent=agent_mock)
+
+    def test_apply_agent_invalid_custom_shell(self,
+                                              remote_env_adapter_mock,
+                                              ude_env_mock,
+                                              deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = frozenset({"deepracer_black",
+                                                  "deepracer_white",
+                                                  "banana_blue"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        agent_mock = MagicMock()
+        agent_mock.shell = "non_existing_custom_shell"
+        with self.assertRaises(ValueError):
+            env.apply_agent(agent=agent_mock)
+
+    def test_apply_agent_ignore_case_and_trim(self,
+                                              remote_env_adapter_mock,
+                                              ude_env_mock,
+                                              deepracer_config_mock):
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = frozenset({"deepracer_black",
+                                                  "deepracer_white",
+                                                  "banana_blue"})
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        agent_mock = MagicMock()
+        agent_mock.shell = "   DeepRacer_White  "
+        env.apply_agent(agent=agent_mock)
+        assert agent_mock.shell == "deepracer_white"
+        deepracer_config_mock.return_value.apply_agent.assert_called_once_with(agent=agent_mock)
+
+    def test_track_names(self,
+                         remote_env_adapter_mock,
+                         ude_env_mock,
+                         deepracer_config_mock):
+        expected_track_names = frozenset({"reinvent",
+                                          "red_star_open"})
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.track_names = expected_track_names
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        assert env.track_names == expected_track_names
+
+    def test_shell_names(self,
+                         remote_env_adapter_mock,
+                         ude_env_mock,
+                         deepracer_config_mock):
+        expected_shell_names = frozenset({"deepracer_black",
+                                          "deepracer_white",
+                                          "banana_blue"})
+        area_config_mock = deepracer_config_mock.return_value.get_area.return_value
+        area_config_mock.shell_names = expected_shell_names
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        assert env.shell_names == expected_shell_names

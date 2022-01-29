@@ -14,7 +14,7 @@
 #   limitations under the License.                                              #
 #################################################################################
 """A class for DeepRacerEnv environment."""
-from typing import Dict, Optional, List, Tuple, Any
+from typing import Dict, Optional, List, Tuple, Any, FrozenSet
 import math
 
 from gym import Space
@@ -70,6 +70,9 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         self._deepracer_config = Client(self._env.side_channel,
                                         timeout=timeout,
                                         max_retry_attempts=max_retry_attempts)
+        area_config = self._deepracer_config.get_area()
+        self._track_names = area_config.track_names
+        self._shell_names = area_config.shell_names
 
     def step(self, action_dict: MultiAgentDict) -> UDEStepResult:
         """
@@ -94,7 +97,7 @@ class DeepRacerEnv(UDEEnvironmentInterface):
             if math.isnan(steering_angle) or math.isinf(steering_angle) or \
                math.isnan(speed) or math.isinf(speed):
                 raise ValueError("Agent's action value cannot contain nan or inf: {{}: {}}".format(agent_id,
-                                                                                                    action))
+                                                                                                   action))
         return self._env.step(action_dict=action_dict)
 
     def reset(self) -> MultiAgentDict:
@@ -159,6 +162,11 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         Args:
             track (Track): the track configuration to set.
         """
+        track_name = track.name
+        track_name = track_name.lower().strip()
+        if track_name not in self.track_names:
+            raise ValueError("{} is not a valid track".format(track.name))
+        track.name = track_name
         self._deepracer_config.apply_track(track=track)
 
     def get_agent(self) -> Agent:
@@ -178,4 +186,29 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         Args:
             agent (Agent): the agent configuration to set.
         """
+        shell = agent.shell
+        shell = shell.lower().strip()
+        if shell not in self.shell_names:
+            raise ValueError("{} is not a valid shell.".format(agent.shell))
+        agent.shell = shell
         self._deepracer_config.apply_agent(agent=agent)
+
+    @property
+    def track_names(self) -> FrozenSet[str]:
+        """
+        Returns a frozenset of tracks supported.
+
+        Returns:
+            FrozenSet[str]: a frozenset of tracks supported.
+        """
+        return self._track_names
+
+    @property
+    def shell_names(self) -> FrozenSet[str]:
+        """
+        Returns a frozenset of custom shells supported.
+
+        Returns:
+            FrozenSet[str]: a frozenset of custom shells supported.
+        """
+        return self._shell_names
