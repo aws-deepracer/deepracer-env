@@ -1,17 +1,15 @@
-## My Project
+## AWS DeepRacer Environment
 
-TODO: Fill this README out!
+The AWS DeepRacer Environment package provides the interface for "RL Lab - DeepRacer" environment.
+The interface contains the simulation environment flow control and the environment configuration changes.
 
-Be sure to:
+## Installation
 
-* Change the title in this README
-* Edit your repository description on GitHub
+To install AWS DeepRacer Environment package, use `pip install deepracer-env`.
 
-## Security
-
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+Python 3.6, 3.7, 3.8, and 3.9 are supported on Linux, Windows, and macOS.
 
 ## License
 
-This project is licensed under the Apache-2.0 License.
+The source code is released under [Apache 2.0](https://aws.amazon.com/apache-2-0/).
 
