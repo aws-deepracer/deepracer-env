@@ -45,6 +45,7 @@ class DeepRacerTest(TestCase):
                                                         options=None,
                                                         compression=Compression.NoCompression,
                                                         credentials=None,
+                                                        auth_key=None,
                                                         timeout=10.0,
                                                         max_retry_attempts=5)
         ude_env_mock.assert_called_once_with(ude_env_adapter=remote_env_adapter_mock.return_value)
@@ -64,6 +65,7 @@ class DeepRacerTest(TestCase):
         options = [("option1", "value")]
         compression = Compression.Deflate
         credentials = MagicMock()
+        auth_key = "auth_pass"
         timeout = 15.0
         max_retry_attempts = 3
 
@@ -72,6 +74,7 @@ class DeepRacerTest(TestCase):
                            options=options,
                            compression=compression,
                            credentials=credentials,
+                           auth_key=auth_key,
                            timeout=timeout,
                            max_retry_attempts=max_retry_attempts)
 
@@ -80,6 +83,7 @@ class DeepRacerTest(TestCase):
                                                         options=options,
                                                         compression=compression,
                                                         credentials=credentials,
+                                                        auth_key=auth_key,
                                                         timeout=timeout,
                                                         max_retry_attempts=max_retry_attempts)
         ude_env_mock.assert_called_once_with(ude_env_adapter=remote_env_adapter_mock.return_value)

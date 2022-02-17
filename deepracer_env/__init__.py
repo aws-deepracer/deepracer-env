@@ -15,3 +15,19 @@
 #################################################################################
 """DeepRacerEnv modules"""
 from .deepracer_env import DeepRacerEnv
+
+"""DeepRacer Environment Config modules"""
+from deepracer_env_config import TrackDirection
+from deepracer_env_config import TrackLine
+from deepracer_env_config import SensorConfigType
+from deepracer_env_config import GameOverConditionType
+from deepracer_env_config import (
+    DEFAULT_AGENT_NAME,
+    DEFAULT_SHELL,
+    DEFAULT_TRACK
+)
+
+from deepracer_env_config import Agent
+from deepracer_env_config import Area
+from deepracer_env_config import Location
+from deepracer_env_config import Track
