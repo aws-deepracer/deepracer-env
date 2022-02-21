@@ -1,11 +1,11 @@
 ## AWS DeepRacer Environment
 
-The AWS DeepRacer Environment package provides the interface for "RL Lab - DeepRacer" environment.
-The interface contains the simulation environment flow control and the environment configuration changes.
+The AWS DeepRacer Environment package provides the interface for the "RL Lab - AWS DeepRacer" environment.
+The interface contains the flow control and configuration changes for the simulation environment.
 
 ## Installation
 
-To install AWS DeepRacer Environment package, use `pip install deepracer-env`.
+To install AWS DeepRacer Environment package, run the `pip install deepracer-env` command.
 
 Python 3.6, 3.7, 3.8, and 3.9 are supported on Linux, Windows, and macOS.
 
