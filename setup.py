@@ -36,6 +36,7 @@ package_name = 'deepracer-env'
 # Declare minimal set for installation
 required_packages = [
     "setuptools",
+    "deepracer-env-config>=0.1.2"
 ]
 
 test_required_packages = [
@@ -52,6 +53,7 @@ setup_args = {
     "package_dir": {"": "."},
     "description": "Open source library to communicate with remote DeepRacer environment.",
     "long_description": read("README.md"),
+    "long_description_content_type": 'text/markdown',
     "author": "Amazon Web Services",
     "url": "https://github.com/aws-deepracer/deepracer-env",
     "license": "Apache License 2.0",
