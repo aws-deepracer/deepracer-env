@@ -36,7 +36,8 @@ package_name = 'deepracer-env'
 # Declare minimal set for installation
 required_packages = [
     "setuptools",
-    "deepracer-env-config>=0.1.2"
+    "deepracer-env-config>=0.1.2",
+    "ude>=0.1.1"
 ]
 
 test_required_packages = [

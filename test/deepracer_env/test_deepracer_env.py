@@ -175,9 +175,9 @@ class DeepRacerTest(TestCase):
                    deepracer_config_mock):
         address = "test_ip"
         env = DeepRacerEnv(address=address)
-        obs_dict = env.reset()
+        reset_result = env.reset()
         ude_env_mock.return_value.reset.assert_called_once()
-        assert obs_dict == ude_env_mock.return_value.reset.return_value
+        assert reset_result == ude_env_mock.return_value.reset.return_value
 
     def test_close(self,
                    remote_env_adapter_mock,
