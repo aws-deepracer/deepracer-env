@@ -177,7 +177,7 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         Returns the agent configuration.
 
         Returns:
-            Track: the agent configuration.
+            Agent: the agent configuration.
         """
         agents = self._deepracer_config.get_agents()
         return agents[0] if agents else agents
