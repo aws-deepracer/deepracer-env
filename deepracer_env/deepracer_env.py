@@ -16,6 +16,7 @@
 """A class for DeepRacerEnv environment."""
 from typing import Dict, Optional, List, Tuple, Any, FrozenSet, Union
 import math
+from threading import RLock
 
 from gym import Space
 
@@ -30,6 +31,43 @@ from deepracer_env_config import (
     Client,
     Track, Agent
 )
+
+
+class DeepRacerEnvObserverInterface(object):
+    """
+    DeepRacerEnv Observer Interface
+    """
+    def on_step(self, env: 'DeepRacerEnv', step_result: UDEStepResult) -> None:
+        """
+        On Step callback.
+        - Called after step completed.
+
+        Args:
+            env (DeepRacerEnv): DeepRacer environment.
+            step_result (UDEStepResult): step result (obs, reward, done, last action, info)
+        """
+        pass
+
+    def on_reset(self, env: 'DeepRacerEnv', reset_result: UDEResetResult) -> None:
+        """
+        On Reset callback.
+        - Called after reset completed.
+
+        Args:
+            env (DeepRacerEnv): DeepRacer environment.
+            reset_result (UDEResetResult): reset result (obs, info)
+        """
+        pass
+
+    def on_close(self, env: 'DeepRacerEnv') -> None:
+        """
+        On Close callback.
+        - Called after close completed.
+
+        Args:
+            env (DeepRacerEnv): DeepRacer environment.
+        """
+        pass
 
 
 class DeepRacerEnv(UDEEnvironmentInterface):
@@ -76,6 +114,28 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         area_config = self._deepracer_config.get_area()
         self._track_names = area_config.track_names
         self._shell_names = area_config.shell_names
+        self._observer_lock = RLock()
+        self._observers = set()
+
+    def register(self, observer: DeepRacerEnvObserverInterface) -> None:
+        """
+        Register given observer.
+
+        Args:
+            observer (DeepRacerEnvObserverInterface): observer
+        """
+        with self._observer_lock:
+            self._observers.add(observer)
+
+    def unregister(self, observer: DeepRacerEnvObserverInterface) -> None:
+        """
+        Unregister given observer.
+
+        Args:
+            observer (DeepRacerEnvObserverInterface): observer to discard
+        """
+        with self._observer_lock:
+            self._observers.discard(observer)
 
     def step(self, action_dict: MultiAgentDict) -> UDEStepResult:
         """
@@ -101,7 +161,13 @@ class DeepRacerEnv(UDEEnvironmentInterface):
                math.isnan(speed) or math.isinf(speed):
                 raise ValueError("Agent's action value cannot contain nan or inf: {{}: {}}".format(agent_id,
                                                                                                    action))
-        return self._env.step(action_dict=action_dict)
+        step_result = self._env.step(action_dict=action_dict)
+
+        with self._observer_lock:
+            observers = self._observers.copy()
+        for observer in observers:
+            observer.on_step(env=self, step_result=step_result)
+        return step_result
 
     def reset(self) -> UDEResetResult:
         """
@@ -111,13 +177,23 @@ class DeepRacerEnv(UDEEnvironmentInterface):
         Returns:
             UDEResetResult: first observation and info in new episode.
         """
-        return self._env.reset()
+        reset_result = self._env.reset()
+
+        with self._observer_lock:
+            observers = self._observers.copy()
+        for observer in observers:
+            observer.on_reset(env=self, reset_result=reset_result)
+        return reset_result
 
     def close(self) -> None:
         """
         Close the environment, and environment will be no longer available to be used.
         """
-        return self._env.close()
+        self._env.close()
+        with self._observer_lock:
+            observers = self._observers.copy()
+        for observer in observers:
+            observer.on_close(env=self)
 
     @property
     def observation_space(self) -> Dict[AgentID, Space]:

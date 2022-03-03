@@ -14,7 +14,7 @@
 #   limitations under the License.                                              #
 #################################################################################
 """DeepRacerEnv modules"""
-from .deepracer_env import DeepRacerEnv
+from .deepracer_env import DeepRacerEnv, DeepRacerEnvObserverInterface
 
 """DeepRacer Environment Config modules"""
 from deepracer_env_config import TrackDirection

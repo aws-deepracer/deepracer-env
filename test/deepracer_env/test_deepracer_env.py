@@ -20,11 +20,24 @@ import inspect
 
 import math
 
-from deepracer_env import DeepRacerEnv
-from ude import Compression
-
+from deepracer_env import DeepRacerEnv, DeepRacerEnvObserverInterface
+from ude import Compression, UDEResetResult, UDEStepResult
 
 myself: Callable[[], Any] = lambda: inspect.stack()[1][3]
+
+
+class DummyObserver(DeepRacerEnvObserverInterface):
+    def __init__(self):
+        self.mock = MagicMock()
+
+    def on_step(self, env: 'DeepRacerEnv', step_result: UDEStepResult) -> None:
+        self.mock.on_step(env=env, step_result=step_result)
+
+    def on_reset(self, env: 'DeepRacerEnv', reset_result: UDEResetResult) -> None:
+        self.mock.on_reset(env=env, reset_result=reset_result)
+
+    def on_close(self, env: 'DeepRacerEnv') -> None:
+        self.mock.on_close(env=env)
 
 
 @patch("deepracer_env.deepracer_env.Client")
@@ -94,6 +107,31 @@ class DeepRacerTest(TestCase):
         assert env.track_names == deepracer_config_mock.return_value.get_area.return_value.track_names
         assert env.shell_names == deepracer_config_mock.return_value.get_area.return_value.shell_names
 
+    def test_register(self,
+                      remote_env_adapter_mock,
+                      ude_env_mock,
+                      deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        observer_mock = DummyObserver()
+        env.register(observer=observer_mock)
+
+        assert observer_mock in env._observers
+
+    def test_unregister(self,
+                        remote_env_adapter_mock,
+                        ude_env_mock,
+                        deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        observer_mock = DummyObserver()
+        env.register(observer=observer_mock)
+
+        assert observer_mock in env._observers
+
+        env.unregister(observer=observer_mock)
+        assert observer_mock not in env._observers
+
     def test_step(self,
                   remote_env_adapter_mock,
                   ude_env_mock,
@@ -136,7 +174,6 @@ class DeepRacerTest(TestCase):
         ude_env_mock.return_value.step.assert_called_once_with(action_dict=expected_action_dict)
         assert step_result == ude_env_mock.return_value.step.return_value
 
-
     def test_step_nan_or_inf(self,
                              remote_env_adapter_mock,
                              ude_env_mock,
@@ -168,6 +205,23 @@ class DeepRacerTest(TestCase):
         with self.assertRaises(ValueError):
             _ = env.step(action_dict=action_dict)
 
+    def test_step_with_observer(self,
+                                remote_env_adapter_mock,
+                                ude_env_mock,
+                                deepracer_config_mock):
+        address = "test_ip"
+
+        env = DeepRacerEnv(address=address)
+        observer_mock = DummyObserver()
+        env.register(observer=observer_mock)
+
+        action_dict = {"agent1": (1.0, 2.0)}
+
+        step_result = env.step(action_dict=action_dict)
+        ude_env_mock.return_value.step.assert_called_once_with(action_dict=action_dict)
+        assert step_result == ude_env_mock.return_value.step.return_value
+        observer_mock.mock.on_step.assert_called_once_with(env=env,
+                                                           step_result=step_result)
 
     def test_reset(self,
                    remote_env_adapter_mock,
@@ -179,6 +233,21 @@ class DeepRacerTest(TestCase):
         ude_env_mock.return_value.reset.assert_called_once()
         assert reset_result == ude_env_mock.return_value.reset.return_value
 
+    def test_reset_with_observer(self,
+                                 remote_env_adapter_mock,
+                                 ude_env_mock,
+                                 deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        observer_mock = DummyObserver()
+        env.register(observer=observer_mock)
+
+        reset_result = env.reset()
+        ude_env_mock.return_value.reset.assert_called_once()
+        assert reset_result == ude_env_mock.return_value.reset.return_value
+        observer_mock.mock.on_reset.assert_called_once_with(env=env,
+                                                            reset_result=reset_result)
+
     def test_close(self,
                    remote_env_adapter_mock,
                    ude_env_mock,
@@ -187,6 +256,18 @@ class DeepRacerTest(TestCase):
         env = DeepRacerEnv(address=address)
         env.close()
         ude_env_mock.return_value.close.assert_called_once()
+
+    def test_close_with_observer(self,
+                                 remote_env_adapter_mock,
+                                 ude_env_mock,
+                                 deepracer_config_mock):
+        address = "test_ip"
+        env = DeepRacerEnv(address=address)
+        observer_mock = DummyObserver()
+        env.register(observer=observer_mock)
+        env.close()
+        ude_env_mock.return_value.close.assert_called_once()
+        observer_mock.mock.on_close.assert_called_once_with(env=env)
 
     def test_observation_space(self,
                                remote_env_adapter_mock,
