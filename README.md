@@ -1,3 +1,5 @@
+## We have made a difficult decision of ceasing active development on this repo as of Jul 2022.
+
 ## AWS DeepRacer Environment
 
 The AWS DeepRacer Environment package provides the interface for the "RL Lab - AWS DeepRacer" environment.
